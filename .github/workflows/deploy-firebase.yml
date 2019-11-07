@@ -1,0 +1,36 @@
+name: deploy-with-firebase
+# プッシュ
+on: [push, repository_dispatch]
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        node-version: [10.x]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: install
+        run: |
+          yarn
+      - name: yarn install, build, and test
+        run: |
+          yarn
+          yarn playcanvas:init -t ${{ secrets.PLAYCANVAS_ACCESS_TOKEN }} -p ${{ secrets.PLAYCANVAS_PROJECT_ID }} -s ${{ secrets.PLAYCANVAS_SCENES }} -b ${{ secrets.PLAYCANVAS_BRANCH_ID }} -n ${{ secrets.PLAYCANVAS_PROJECT_NAME }} -r ${{ secrets.PLAYCANVAS_REMOTE_PATH }}
+          yarn playcanvas:download
+          yarn deploy --token "${{ secrets.FIREBASE_TOKEN }}" --project "${{ secrets.PROJECT_ID }}"
+        shell: bash
+        env:
+          CI: true
+  notification:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run a multi-line script
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"新しいバージョンが公開されました\r プロジェクト名 ${{ secrets.PLAYCANVAS_PROJECT_NAME }}\r プロジェクトURL https://playcanvas.com/project/${{ secrets.PLAYCANVAS_PROJECT_ID }} \r\r ${{ secrets.URL}}"}' ${{ secrets.SLACK_WEBHOOK_URL }}

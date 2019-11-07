@@ -1,0 +1,44 @@
+name: deploy-with-ssh
+
+on:
+  push:
+    branches:
+      - master
+            
+jobs:
+  deploy:
+    runs-on: ubuntu-16.04
+    strategy:
+      matrix:
+        node-version: [10.x]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name:  install, build, and test
+        run: |
+          yarn
+          node ./node_modules/playcanvas-tools/built/bin/playcanvas-cli.js init -t ${{ secrets.PLAYCANVAS_ACCESS_TOKEN }} -p ${{ secrets.PLAYCANVAS_PROJECT_ID }} -s ${{ secrets.PLAYCANVAS_SCENES }} -b ${{ secrets.PLAYCANVAS_BRANCH_ID }} -n ${{ secrets.PLAYCANVAS_PROJECT_NAME }} -r ${{ secrets.PLAYCANVAS_REMOTE_PATH }}
+          node ./node_modules/playcanvas-tools/built/bin/playcanvas-cli.js download
+        shell: bash
+      - name: copy file via ssh password
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          source: "./${{ secrets.PLAYCANVAS_PROJECT_NAME }}"
+          target: "/usr/share/nginx/html/"
+          overwrite: true
+        env:
+          CI: true
+  notification:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run a multi-line script
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"新しいバージョンが公開されました\r プロジェクト名 ${{ secrets.PLAYCANVAS_PROJECT_NAME }}\r プロジェクトURL https://playcanvas.com/project/${{ secrets.PLAYCANVAS_PROJECT_ID }} \r\r ${{ secrets.PLAYCANVAS_PROJECT_NAME }}"}' ${{ secrets.SLACK_WEBHOOK_URL }}
