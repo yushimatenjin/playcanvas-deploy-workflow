@@ -55,7 +55,7 @@ git clone git@github.com:yushimatenjin/playcanvas-deploy-workflow.git
 `playcanvas.json`を参考に環境変数を設定します。
 
 
-| 環境変数                | playcanvas.jsonのキー          | 取得先                          |
+| 環境変数(カッコ書きはデプロイ先)               | playcanvas.jsonのキー          | 取得先                          |
 |-------------------------|-------------|---------------------------------|
 | PLAYCANVAS_ACCESS_TOKEN | accessToken | playcanvas.json                 |
 | PLAYCANVAS_BRANCH_ID    | branchId    | playcanvas.json                 |
@@ -63,14 +63,22 @@ git clone git@github.com:yushimatenjin/playcanvas-deploy-workflow.git
 | PLAYCANVAS_PROJECT_NAME | projectName | playcanvas.json                 |
 | PLAYCANVAS_REMOTE_PATH  | remotePath  | playcanvas.json                 |
 | PLAYCANVAS_SCENES       | scenes      | playcanvas.json                 |
-| FIREBASE_TOKEN          | token       | Firebase CLI                    |
-| PROJECT_ID              | projectId   | Firebase CLI / Firebase管理画面 |
+|(Firebase Hosting) FIREBASE_TOKEN          | token       | Firebase CLI                    |
+|(Firebase Hosting)  PROJECT_ID              | projectId   | Firebase CLI / Firebase管理画面 |
+|(SSH) HOST| SCP先のホスト名 | ウェブサーバー|
+|(SSH) USERNAME| SCP先のユーザ名 | ウェブサーバー|
+|(SSH) PASSWORD| SCP先のパスワード | ウェブサーバー|
 
 
 ※APIを発行したアカウントがPersonal, Organization以外のプランですと、プロジェクトのダウンロードができませんので、CIを使用したダウンロードでエラーが出ます。
 
+5. 自身の環境に合わせた
 
-4. リポジトリにPushをする
+SSHを使用してデプロイをする場合にはデフォルトの`.github/workflows/deploy-ssh.yml`においては`nginx`がインストールされたサーバーにアップロードするためのスクリプトになっていますのでこちらを変更いたします。
+```
+target: "/usr/share/nginx/html/"
+```
+1. リポジトリにPushをする
 - 環境変数の設定ができたら、自身のGitHubのリポジトリに`Push`をします。
 
 
