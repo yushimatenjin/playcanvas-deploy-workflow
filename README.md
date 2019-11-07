@@ -13,8 +13,11 @@
 現在この2つのデプロイ方法のサンプルがあります。
 
 
-### 1. リポジトリをcloneする
+### 1. リポジトリをクローンする
 
+```bash
+git clone git@github.com:yushimatenjin/playcanvas-deploy-workflow.git
+```
 
 
 
